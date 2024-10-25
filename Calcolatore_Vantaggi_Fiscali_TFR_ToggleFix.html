@@ -1,0 +1,237 @@
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcolatore Vantaggi Fiscali TFR</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f4f4f9;
+            color: #333;
+            font-size: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        #calcolatore-container {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            max-width: 700px;
+            width: 100%;
+        }
+
+        h2 {
+            color: #2c3e50;
+            text-align: center;
+            font-size: 1.6em;
+            margin-bottom: 25px;
+            font-weight: bold;
+        }
+
+        label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-top: 15px;
+            display: block;
+            font-size: 1em;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1em;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #1f2b3a;
+        }
+
+        h3 {
+            color: #2c3e50;
+            font-size: 1.2em;
+            margin-top: 20px;
+            border-bottom: 2px solid #e3e3e3;
+            padding-bottom: 5px;
+        }
+
+        .results-section p {
+            padding: 12px;
+            border-radius: 6px;
+            background-color: #e9f0f4;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+
+        #risultatiAnni table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        #risultatiAnni th, #risultatiAnni td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.95em;
+        }
+
+        #risultatiAnni th {
+            background-color: #e9f0f4;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+
+        #risultatiAnni tr:nth-child(even) {
+            background-color: #f7fafb;
+        }
+    </style>
+</head>
+
+<body>
+<div id="calcolatore-container">
+    <h2>Calcolatore Vantaggi Fiscali TFR</h2>
+    <form id="calcolatore" class="input-section">
+        <label for="stipendioMensile">Stipendio Mensile Lordo (€):</label>
+        <input type="number" id="stipendioMensile" required><br><br>
+
+        <label for="tredicesima">13a:</label>
+        <select id="tredicesima">
+            <option value="1">Sì</option>
+            <option value="0">No</option>
+        </select><br><br>
+
+        <label for="quattordicesima">14a:</label>
+        <select id="quattordicesima">
+            <option value="1">Sì</option>
+            <option value="0">No</option>
+        </select><br><br>
+
+        <label for="numDipendenti">Numero di Dipendenti:</label>
+        <input type="number" id="numDipendenti" required><br><br>
+
+        <label for="anniAdesione">Seleziona il numero di anni (1-60):</label>
+        <input type="number" id="anniAdesione" min="1" max="60" required><br><br>
+
+        <label for="percentualeRiduzione">Percentuale Riduzione Costo del Lavoro (%):</label>
+        <input type="number" id="percentualeRiduzione" value="0.29" step="0.01" required><br><br>
+
+        <label for="tassoInflazione">Tasso d'Inflazione (%):</label>
+        <input type="number" id="tassoInflazione" value="0.30" step="0.01" required><br><br>
+
+        <button type="button" onclick="calcola()">Calcola</button>
+    </form>
+
+    <h3 class="results-header">Risultati</h3>
+    <div class="results-section">
+        <p id="stipendioAnnuo">Stipendio Lordo Annuo: </p>
+        <p id="tfrAnnuo">TFR Annuo: </p>
+        <p id="esoneroINPS">Esenzione Fondo di Garanzia INPS: </p>
+        <p id="deduzioneTFR">Deduzione TFR Previdenza Complementare: </p>
+        <p id="riduzioneCostoLavoro">Riduzione Costo del Lavoro: </p>
+        <p id="risparmioRivalutazioneTFR">Risparmio Rivalutazione TFR (primo anno): </p>
+        <p id="totaleVantaggioFiscale">Totale vantaggio fiscale annuo a lavoratore: </p>
+        <p id="totaleVantaggioFiscaleAzienda">Totale vantaggio fiscale per tutti i lavoratori: </p>
+        <p id="risparmioAdesioneSingola">Risparmio per adesione singola: </p>
+        <p id="risparmioAdesioneTutti">Risparmio per adesione tutti i lavoratori: </p>
+    </div>
+    <button type="button" id="toggleButton">Mostra/Nascondi Dettagli Anno</button>
+    <div id="risultatiAnni" style="display:none;"></div>
+</div>
+
+<script>
+function formatNumberItalian(num) {
+    return num.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+function calcola() {
+    const stipendioMensile = parseFloat(document.getElementById('stipendioMensile').value);
+    const tredicesima = parseInt(document.getElementById('tredicesima').value);
+    const quattordicesima = parseInt(document.getElementById('quattordicesima').value);
+    const numDipendenti = parseInt(document.getElementById('numDipendenti').value);
+    const anniAdesione = parseInt(document.getElementById('anniAdesione').value);
+    const percentualeRiduzione = parseFloat(document.getElementById('percentualeRiduzione').value) / 100;
+    const tassoInflazione = parseFloat(document.getElementById('tassoInflazione').value) / 100;
+
+    let stipendioAnnuo = stipendioMensile * (12 + tredicesima + quattordicesima);
+    let tfrAnnuo = stipendioMensile * 0.0691 * 13;
+    let esoneroINPS = stipendioAnnuo * 0.0020;
+    let deduzioneTFR = (numDipendenti > 50) ? tfrAnnuo * 0.04 : tfrAnnuo * 0.06;
+    let riduzioneCostoLavoro = tfrAnnuo * percentualeRiduzione;
+    let risparmioRivalutazioneTFR = tfrAnnuo * (0.015 + (0.75 * tassoInflazione));
+    let totaleVantaggioFiscale = esoneroINPS + deduzioneTFR + riduzioneCostoLavoro + risparmioRivalutazioneTFR;
+    let totaleVantaggioFiscaleAzienda = totaleVantaggioFiscale * numDipendenti;
+
+    document.getElementById('stipendioAnnuo').innerHTML = 'Stipendio Lordo Annuo: ' + formatNumberItalian(stipendioAnnuo) + ' €';
+    document.getElementById('tfrAnnuo').innerHTML = 'TFR Annuo: ' + formatNumberItalian(tfrAnnuo) + ' €';
+    document.getElementById('esoneroINPS').innerHTML = 'Esenzione Fondo di Garanzia INPS: ' + formatNumberItalian(esoneroINPS) + ' €';
+    document.getElementById('deduzioneTFR').innerHTML = 'Deduzione TFR Previdenza Complementare: ' + formatNumberItalian(deduzioneTFR) + ' €';
+    document.getElementById('riduzioneCostoLavoro').innerHTML = 'Riduzione Costo del Lavoro: ' + formatNumberItalian(riduzioneCostoLavoro) + ' €';
+    document.getElementById('risparmioRivalutazioneTFR').innerHTML = 'Risparmio Rivalutazione TFR (primo anno): ' + formatNumberItalian(risparmioRivalutazioneTFR) + ' €';
+    document.getElementById('totaleVantaggioFiscale').innerHTML = 'Totale vantaggio fiscale annuo a lavoratore: ' + formatNumberItalian(totaleVantaggioFiscale) + ' €';
+    document.getElementById('totaleVantaggioFiscaleAzienda').innerHTML = 'Totale vantaggio fiscale per tutti i lavoratori: ' + formatNumberItalian(totaleVantaggioFiscaleAzienda) + ' €';
+
+    let risultatiAnniHTML = "<table><tr><th>Anno</th><th>Versato Totale (€)</th><th>Interessi (€)</th><th>Montante (€)</th></tr>";
+    let montante = tfrAnnuo + risparmioRivalutazioneTFR;
+    risultatiAnniHTML += "<tr><td>1</td><td>" + formatNumberItalian(tfrAnnuo) + " €</td><td>" + formatNumberItalian(risparmioRivalutazioneTFR) + " €</td><td>" + formatNumberItalian(montante) + " €</td></tr>";
+    
+    let totalRisparmioRivalutazione = risparmioRivalutazioneTFR;
+    let risparmioAdesioneSingola = esoneroINPS + deduzioneTFR + riduzioneCostoLavoro;
+
+    for (let anno = 2; anno <= anniAdesione; anno++) {
+        montante += tfrAnnuo;
+        let interesseAnnuale = montante * 0.0173;
+        montante += interesseAnnuale;
+        risultatiAnniHTML += "<tr><td>" + anno + "</td><td>" + formatNumberItalian(tfrAnnuo * anno) + " €</td><td>" + formatNumberItalian(interesseAnnuale) + " €</td><td>" + formatNumberItalian(montante) + " €</td></tr>";
+        
+        totalRisparmioRivalutazione += interesseAnnuale;
+        risparmioAdesioneSingola += esoneroINPS + deduzioneTFR + riduzioneCostoLavoro;
+    }
+
+    document.getElementById('risparmioAdesioneSingola').innerHTML = 'Risparmio per adesione singola: ' + formatNumberItalian(risparmioAdesioneSingola + totalRisparmioRivalutazione) + ' €';
+    document.getElementById('risparmioAdesioneTutti').innerHTML = 'Risparmio per adesione tutti i lavoratori: ' + formatNumberItalian((risparmioAdesioneSingola + totalRisparmioRivalutazione) * numDipendenti) + ' €';
+    risultatiAnniHTML += "</table>";
+    
+    document.getElementById('risultatiAnni').innerHTML = risultatiAnniHTML;
+}
+
+// Ensure the toggle button works even after recalculating results
+document.getElementById('toggleButton').addEventListener('click', function() {
+    const tableDiv = document.getElementById('risultatiAnni');
+    tableDiv.style.display = tableDiv.style.display === 'none' ? 'block' : 'none';
+});
+</script>
+</body>
+</html>
